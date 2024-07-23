@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sqlite3.h> //Sqlite header
+#define SQLITE_HAS_CODEC 1
 #define TMPMAX 32
 
 int encrypt(unsigned char *plaintext, int plaintext_len,  unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
@@ -109,43 +110,35 @@ int main()
 	// Encrypt
     ciphered_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
 	
-	BIO_dump_fp(stdout, (const char *)ciphertext, ciphered_len);	
-
     // Decrypt
     decryptedtext_len = decrypt(ciphertext, ciphered_len, key, iv, decryptedtext);
 
 	// Add a NULL terminator 
 	decryptedtext[decryptedtext_len] = '\0';
 
-	// Print decrypted text
-	printf("%s\n", decryptedtext);
-
-    // Create sqlite3 database
+    /*
+     * SQLite3
+     *
+     * For every insert operation (or update, delete and select) calls sqlite3_step(stmt)
+     */
     sqlite3 *db;
     int rc;
-    rc = sqlite3_open("pass_man_db_test.db", &db); // Create db name "pass_man_db_test"
-
-    if( rc ) {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+    rc = sqlite3_open("pass_man_db_test.db", &db); // Open db statement
+    if(rc == SQLITE_ERROR ) {
+        fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         return(0);
-    } else {
-        fprintf(stderr, "Opened database successfully\n");
     }
 
-    // Inserting pbkdf2 key to Sqlite3 table
-    char *zErrMsg = 0;
-    sqlite3_stmt *stmt;
+    rc =
+    sqlite3_key(db, key, 32); // Error adding key
 
     // Prepare
-    rc = sqlite3_prepare_v2(db, "INSERT INTO pbkdf_key VALUES(?);", -1, &stmt, 0);
     char *sql;
     char *zErrMsg = 0;
-
     sqlite3_stmt *stmt;
-    sql = "INSERT INTO pbkdf_key VALUES(?)"; // SQL Statement
 
     // Prepare
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(db, "INSERT INTO key VALUES(?);", -1, &stmt, 0);
     if(rc != SQLITE_OK)
     {
        fprintf(stderr, "SQL error: %s\n", zErrMsg);
