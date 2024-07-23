@@ -133,13 +133,11 @@ int main()
     }
 
     // Inserting pbkdf2 key to Sqlite3 table
-<<<<<<< HEAD
     char *zErrMsg = 0;
     sqlite3_stmt *stmt;
 
     // Prepare
     rc = sqlite3_prepare_v2(db, "INSERT INTO pbkdf_key VALUES(?);", -1, &stmt, 0);
-=======
     char *sql;
     char *zErrMsg = 0;
 
@@ -148,7 +146,6 @@ int main()
 
     // Prepare
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
->>>>>>> 96ba96441f1849defeb209c7eb3de6f8c86ee4fa
     if(rc != SQLITE_OK)
     {
        fprintf(stderr, "SQL error: %s\n", zErrMsg);
