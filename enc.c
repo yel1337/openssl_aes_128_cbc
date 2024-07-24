@@ -129,9 +129,6 @@ int main()
         return(0);
     }
 
-    rc =
-    sqlite3_key(db, key, 32); // Error adding key
-
     // Prepare
     char *sql;
     char *zErrMsg = 0;
@@ -145,7 +142,7 @@ int main()
        sqlite3_free(zErrMsg);
     }
 
-    // Bind
+    // Bind text
     rc = sqlite3_bind_text(stmt, 1, key, -1, SQLITE_STATIC);
     if(rc != SQLITE_OK)
     {
@@ -163,6 +160,11 @@ int main()
 
     // Free
     rc = sqlite3_finalize(stmt);
+
+    // PRAGMA key
+    fp = popen("sqlcipher pass_man_db_test.db", "r");
+    rc = sqlite3_exec(db, "PRAGMA key = SELECT 'key' FROM 'key' WHERE rowid= 1;", 0, 0, &zErrMsg);
+
     sqlite3_close(db);
 }
 
