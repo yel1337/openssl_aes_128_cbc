@@ -113,8 +113,8 @@ int main()
     // Decrypt
     decryptedtext_len = decrypt(ciphertext, ciphered_len, key, iv, decryptedtext);
 
-	// Add a NULL terminator 
-	decryptedtext[decryptedtext_len] = '\0';
+    // Add a NULL terminator 
+    decryptedtext[decryptedtext_len] = '\0';
 
     /*
      * SQLite3
