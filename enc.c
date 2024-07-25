@@ -3,7 +3,7 @@
 #include <openssl/err.h>
 #include <stdint.h>
 #include <string.h>
-#include <sqlite3.h> //Sqlite header
+#include <sqlite3.h> 
 #define SQLITE_HAS_CODEC 1
 #define TMPMAX 32
 
