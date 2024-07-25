@@ -170,7 +170,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    rc = sqlite3_exec(db, "PRAGMA key = 'password'", 0, 0, &zErrMsg);
+    rc = sqlite3_exec(db, "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'", 0, 0, &zErrMsg);
     if(rc != SQLITE_OK )
     {
        fprintf(stderr, "SQL error: %s\n", zErrMsg);
