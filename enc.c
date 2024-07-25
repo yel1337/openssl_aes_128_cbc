@@ -99,15 +99,15 @@ int main()
     ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_init(ctx);
 
-	// Buffer for ciphered text
-	unsigned char ciphertext[128];
+    // Buffer for ciphered text
+    unsigned char ciphertext[128];
 
-	// Buffer for decryptedtext
-	unsigned char decryptedtext[128];
+    // Buffer for decryptedtext
+    unsigned char decryptedtext[128];
 
-	int decryptedtext_len, ciphered_len; 
+    int decryptedtext_len, ciphered_len; 
 
-	// Encrypt
+    // Encrypt
     ciphered_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
 	
     // Decrypt
