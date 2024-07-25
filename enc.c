@@ -171,12 +171,38 @@ int main()
     }
 
     rc = sqlite3_exec(db, "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'", 0, 0, &zErrMsg);
-    if(rc != SQLITE_OK )
+
+    /* -----
+     * UNDONE
+     */
+
+    // Hexdump
+    if(rc == SQLITE_OK)
     {
-       fprintf(stderr, "SQL error: %s\n", zErrMsg);
-       sqlite3_free(zErrMsg);
+        fp = popen(".q", "r");
+        if(fp != NULL)
+        {
+            fp = popen("hexdump -C pass_man_db_test.db", "r");
+
+            if(fp == NULL)
+            {
+                perror("hexdump error\n");
+
+                exit(EXIT_FAILURE);
+            }
+
+        }
     }
 
+    /*
+     * UNDONE
+     */ -----
+
+    if(rc == SQLITE_ERROR )
+    {
+       fprintf(stderr, "SQL error: %s\n",  sqlite3_errmsg(db));
+       return 0;
+    }
     sqlite3_close(db);
 }
 
