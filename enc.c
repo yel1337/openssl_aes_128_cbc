@@ -81,8 +81,8 @@ int decrypt(unsigned char *ciphertext, int ciphered_len, unsigned char *key, uns
 int main()
 {
     unsigned char *plaintext = (unsigned char *)"passwordpassword";
-
     FILE *fp;
+
     // Key derivation using PBKDF2 from openssl
     fp = popen("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:passwordpassword -kdfopt salt:salt -kdfopt iter:2 PBKDF2", "r");
     char tmp[TMPMAX];
@@ -163,7 +163,19 @@ int main()
 
     // PRAGMA key
     fp = popen("sqlcipher pass_man_db_test.db", "r");
-    rc = sqlite3_exec(db, "PRAGMA key = SELECT 'key' FROM 'key' WHERE rowid= 1;", 0, 0, &zErrMsg);
+    if(fp == NULL)
+    {
+        perror("popen failed");
+
+        exit(EXIT_FAILURE);
+    }
+
+    rc = sqlite3_exec(db, "PRAGMA key = 'password'", 0, 0, &zErrMsg);
+    if(rc != SQLITE_OK )
+    {
+       fprintf(stderr, "SQL error: %s\n", zErrMsg);
+       sqlite3_free(zErrMsg);
+    }
 
     sqlite3_close(db);
 }
