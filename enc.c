@@ -3,7 +3,7 @@
 #include <openssl/err.h>
 #include <stdint.h>
 #include <string.h>
-#include <sqlite3.h> //Sqlite header
+#include <sqlite3.h> 
 #define SQLITE_HAS_CODEC 1
 #define TMPMAX 32
 
@@ -99,27 +99,27 @@ int main()
     ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_init(ctx);
 
-	// Buffer for ciphered text
-	unsigned char ciphertext[128];
+    // Buffer for ciphered text
+    unsigned char ciphertext[128];
 
-	// Buffer for decryptedtext
-	unsigned char decryptedtext[128];
+    // Buffer for decryptedtext
+    unsigned char decryptedtext[128];
 
-	int decryptedtext_len, ciphered_len; 
+    int decryptedtext_len, ciphered_len; 
 
-	// Encrypt
+    // Encrypt
     ciphered_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
 	
     // Decrypt
     decryptedtext_len = decrypt(ciphertext, ciphered_len, key, iv, decryptedtext);
 
-	// Add a NULL terminator 
-	decryptedtext[decryptedtext_len] = '\0';
+    // Add a NULL terminator 
+    decryptedtext[decryptedtext_len] = '\0';
 
     /*
      * SQLite3
      *
-     * For every insert operation (or update, delete and select) calls sqlite3_step(stmt)
+     * For every insert operation (or update, delete and select) call sqlite3_step(stmt)
      */
     sqlite3 *db;
     int rc;
