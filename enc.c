@@ -119,7 +119,7 @@ int main()
     /*
      * SQLite3
      *
-     * For every insert operation (or update, delete and select) calls sqlite3_step(stmt)
+     * For every insert operation (or update, delete and select) call sqlite3_step(stmt)
      */
     sqlite3 *db;
     int rc;
