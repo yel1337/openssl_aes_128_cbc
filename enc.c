@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <sqlite3.h> 
+#include <unistd.h>
+#include <sys/types.h>
 #define SQLITE_HAS_CODEC 1
 #define TMPMAX 32
 
@@ -161,48 +163,37 @@ int main()
     // Free
     rc = sqlite3_finalize(stmt);
 
-    // PRAGMA key
-    fp = popen("sqlcipher pass_man_db_test.db", "r");
-    if(fp == NULL)
+    // Insert PRAGMA key
+    pid_t pid;
+    pid = fork();
+
+    if(pid < 0)
     {
-        perror("popen failed");
+        perror("fork() failed");
 
         exit(EXIT_FAILURE);
-    }
+    } else if(pid == 0){
+        rc = sqlite3_exec(db, "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'", 0, 0, &zErrMsg);
 
-    rc = sqlite3_exec(db, "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'", 0, 0, &zErrMsg);
-
-    /* -----
-     * UNDONE
-     */
-
-    // Hexdump
-    if(rc == SQLITE_OK)
-    {
-        fp = popen(".q", "r");
-        if(fp != NULL)
+        if( rc == SQLITE_ERROR)
         {
-            fp = popen("hexdump -C pass_man_db_test.db", "r");
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            sqlite3_free(zErrMsg);
+        }
 
-            if(fp == NULL)
-            {
-                perror("hexdump error\n");
+        fp = popen(".q", "r");
+        exit(EXIT_SUCCESS);
+    } else{
+        fp = popen("sqlcipher pass_man_db_test.db", "r");
 
-                exit(EXIT_FAILURE);
-            }
+        if(fp == NULL )
+        {
+            perror("popen failed");
 
+            exit(EXIT_FAILURE);
         }
     }
 
-    /*
-     * UNDONE
-     */ -----
-
-    if(rc == SQLITE_ERROR )
-    {
-       fprintf(stderr, "SQL error: %s\n",  sqlite3_errmsg(db));
-       return 0;
-    }
     sqlite3_close(db);
 }
 
