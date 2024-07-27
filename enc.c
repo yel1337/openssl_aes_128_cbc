@@ -181,7 +181,7 @@ int main()
             perror("popen error\n");
         }
 
-        pid_2 = fork();
+        pid_2 = fork(); // Create new process
         if(pid_2 > 0)
         {
             const char *sql = "'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
