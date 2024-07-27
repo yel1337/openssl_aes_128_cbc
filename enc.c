@@ -165,15 +165,19 @@ int main()
 
     // Insert PRAGMA key
     pid_t pid;
-    pid = fork();
+    pid = fork(); // Create new process
 
-    if(pid < 0)
+    if(pid < 0) // Err handling
     {
         perror("fork() failed");
 
         exit(EXIT_FAILURE);
-    } else if(pid == 0){
-        rc = sqlite3_exec(db, "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'", 0, 0, &zErrMsg);
+    }
+    if(pid == 0) // Child process
+    {
+        fp = popen("PRAGMA key = ", "r");
+        const char *sql = "'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
+        rc = sqlite3_exec(db, fp + sql, 0, 0, &zErrMsg);
 
         if( rc == SQLITE_ERROR)
         {
@@ -181,9 +185,10 @@ int main()
             sqlite3_free(zErrMsg);
         }
 
-        fp = popen(".q", "r");
         exit(EXIT_SUCCESS);
-    } else{
+    }
+    if(pid > 0) // Parent process
+    {
         fp = popen("sqlcipher pass_man_db_test.db", "r");
 
         if(fp == NULL )
