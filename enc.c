@@ -164,36 +164,47 @@ int main()
     rc = sqlite3_finalize(stmt);
 
     // Insert PRAGMA key
-    pid_t pid;
-    pid = fork(); // Create new process
+    pid_t pid_1, pid_2;
+    pid_1 = fork(); // Create new process
 
-    if(pid < 0) // Err handling
+    if(pid_1 < 0) // Err handling
     {
         perror("fork() failed");
 
         exit(EXIT_FAILURE);
     }
-    if(pid == 0) // Child process
+    if(pid_1 == 0) // Child process
     {
         fp = popen("PRAGMA key = ", "r");
-        const char *sql = "'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
-        rc = sqlite3_exec(db, fp + sql, 0, 0, &zErrMsg);
-
-        if( rc == SQLITE_ERROR)
+        if(fp == NULL)
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
+            perror("popen error\n");
         }
 
-        exit(EXIT_SUCCESS);
+        pid_2 = fork();
+        if(pid_2 > 0)
+        {
+            const char *sql = "'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
+            rc = sqlite3_exec(db, sql, 0, 0, &zErrMsg);
+            if( rc == SQLITE_ERROR)
+            {
+                fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                sqlite3_free(zErrMsg);
+            }
+
+        }
+        else if(pid_2 == 0)
+        {
+            fp = popen(".q", "r");
+        }
     }
-    if(pid > 0) // Parent process
+    if(pid_1 > 0) // Parent process
     {
         fp = popen("sqlcipher pass_man_db_test.db", "r");
 
         if(fp == NULL )
         {
-            perror("popen failed");
+            perror("popen error\n");
 
             exit(EXIT_FAILURE);
         }
