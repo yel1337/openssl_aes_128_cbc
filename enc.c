@@ -185,7 +185,15 @@ int main()
         size_t write_pragma;
         write_pragma = fwrite(PRAGMA_TMP, sizeof(char), strlen(PRAGMA_TMP), fp);
 
+<<<<<<< HEAD
         if(write_pragma != strlen(PRAGMA_TMP)) // writing err handling
+||||||| a291755
+        pid_2 = fork();
+        if(pid_2 > 0)
+=======
+        pid_2 = fork(); // Create new process
+        if(pid_2 > 0)
+>>>>>>> 0b071dee7a46deee9de596d9461c07c6db86d072
         {
             fprintf(stderr, "insert_pragma failed:");
 
