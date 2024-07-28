@@ -86,9 +86,16 @@ int main()
     FILE *fp;
 
     // Key derivation using PBKDF2 from openssl
-    fp = popen("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:passwordpassword -kdfopt salt:salt -kdfopt iter:2 PBKDF2", "r");
     char tmp[TMPMAX];
-    unsigned char *key = fgets(tmp, TMPMAX, fp);
+    unsigned char *deprived_key;
+    fp = popen("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:passwordpassword -kdfopt salt:salt -kdfopt iter:2 PBKDF2", "r");
+    if(fp != NULL){
+         deprived_key = fgets(tmp, TMPMAX, fp);
+
+         pclose(fp);
+    }
+
+    unsigned char *key = deprived_key;
 
     // Generate IV from CSPRNG
     unsigned char *buf; // Rand buffer
@@ -164,50 +171,28 @@ int main()
     rc = sqlite3_finalize(stmt);
 
     // Insert PRAGMA key
-    pid_t pid_1, pid_2;
-    pid_1 = fork(); // Create new process
+    fp = popen("sqlcipher pass_man_db_test.db", "w");
 
-    if(pid_1 < 0) // Err handling
+    if(fp)
     {
-        perror("fork() failed");
+        perror("popen sqlcipher failed\n");
 
         exit(EXIT_FAILURE);
     }
-    if(pid_1 == 0) // Child process
+    if(fp != NULL)
     {
-        fp = popen("PRAGMA key = ", "r");
-        if(fp == NULL)
-        {
-            perror("popen error\n");
-        }
+        const char *PRAGMA_TMP = "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
+        size_t write_pragma;
+        write_pragma = fwrite(PRAGMA_TMP, sizeof(char), strlen(PRAGMA_TMP), fp);
 
-        pid_2 = fork();
-        if(pid_2 > 0)
+        if(write_pragma != strlen(PRAGMA_TMP)) // writing err handling
         {
-            const char *sql = "'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
-            rc = sqlite3_exec(db, sql, 0, 0, &zErrMsg);
-            if( rc == SQLITE_ERROR)
-            {
-                fprintf(stderr, "SQL error: %s\n", zErrMsg);
-                sqlite3_free(zErrMsg);
-            }
-
-        }
-        else if(pid_2 == 0)
-        {
-            fp = popen(".q", "r");
-        }
-    }
-    if(pid_1 > 0) // Parent process
-    {
-        fp = popen("sqlcipher pass_man_db_test.db", "r");
-
-        if(fp == NULL )
-        {
-            perror("popen error\n");
+            fprintf(stderr, "insert_pragma failed:");
 
             exit(EXIT_FAILURE);
         }
+
+        pclose(fp);
     }
 
     sqlite3_close(db);
