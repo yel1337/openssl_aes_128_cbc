@@ -79,7 +79,15 @@ int decrypt(unsigned char *ciphertext, int ciphered_len, unsigned char *key, uns
 
 	return plaintext_len; 
 }
+static int callback( void *data, int argc, char **argv, char **azColName)
+{
+    int i;
 
+    for(i = 0; i < argc; i++)
+    {
+        printf("key: %s\n", argv[i]);
+    }
+}
 int main()
 {
     unsigned char *plaintext = (unsigned char *)"passwordpassword";
@@ -193,15 +201,14 @@ int main()
             exit(EXIT_FAILURE);
         }
 
-        const char *SQL_QUERY_ERR_CHECK = "'SELECT * FROM key;'";
-        size_t write_sql_queryErr;
-        write_sql_queryErr = fwrite(SQL_QUERY_ERR_CHECK, sizeof(char), strlen(SQL_QUERY_ERR_CHECK), fp);
+        rc = sqlite3_exec(db, "SELECT * FROM key;", 0, 0, &zErrMsg);
 
-        if(write_sql_queryErr != SQLITE_OK) //Auth check using query if != correct key -> SQL error
+        if(rc != SQLITE_OK) //Auth check using query if != correct key -> SQL error
         {
-            fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
-
-            exit(EXIT_FAILURE);
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            sqlite3_free(zErrMsg);
+        } else if(rc == SQLITE_OK){
+            sqlite3_exec(db, "SELECT * FROM key;", callback, 0, &zErrMsg);
         }
 
         pclose(fp); // Close pipe
