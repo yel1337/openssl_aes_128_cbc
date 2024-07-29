@@ -89,7 +89,8 @@ int main()
     char tmp[TMPMAX];
     unsigned char *deprived_key;
     fp = popen("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:passwordpassword -kdfopt salt:salt -kdfopt iter:2 PBKDF2", "r");
-    if(fp != NULL){
+    if(fp != NULL)
+    {
          deprived_key = fgets(tmp, TMPMAX, fp);
 
          pclose(fp);
@@ -98,9 +99,9 @@ int main()
     unsigned char *key = deprived_key;
 
     // Generate IV from CSPRNG
-    unsigned char *buf; // Rand buffer
+    unsigned char *buf = malloc(16 *sizeof(*buf)); // Rand buffer
     int rand_gen = RAND_bytes(buf, 16);
-    unsigned char *rand_iv = (unsigned char *)malloc(sizeof(rand_gen));
+    unsigned char *rand_iv = (unsigned char *)malloc(16 * sizeof(rand_gen));
     unsigned char *iv = rand_iv;
 
     // Initialize cipher context
@@ -171,11 +172,11 @@ int main()
     rc = sqlite3_finalize(stmt);
 
     // Insert PRAGMA key
-    fp = popen("sqlcipher pass_man_db_test.db", "w");
+    fp = popen("sqlcipher pass_man_db_encrypted.db", "w"); // Open pipe for write end
 
-    if(fp)
+    if(fp == NULL)
     {
-        perror("popen sqlcipher failed\n");
+        perror("popen sqlcipher failed\n"); //
 
         exit(EXIT_FAILURE);
     }
@@ -185,22 +186,25 @@ int main()
         size_t write_pragma;
         write_pragma = fwrite(PRAGMA_TMP, sizeof(char), strlen(PRAGMA_TMP), fp);
 
-<<<<<<< HEAD
-        if(write_pragma != strlen(PRAGMA_TMP)) // writing err handling
-||||||| a291755
-        pid_2 = fork();
-        if(pid_2 > 0)
-=======
-        pid_2 = fork(); // Create new process
-        if(pid_2 > 0)
->>>>>>> 0b071dee7a46deee9de596d9461c07c6db86d072
+        if(write_pragma != strlen(PRAGMA_TMP)) // Writing err handling
         {
             fprintf(stderr, "insert_pragma failed:");
 
             exit(EXIT_FAILURE);
         }
 
-        pclose(fp);
+        const char *SQL_QUERY_ERR_CHECK = "'SELECT * FROM key;'";
+        size_t write_sql_queryErr;
+        write_sql_queryErr = fwrite(SQL_QUERY_ERR_CHECK, sizeof(char), strlen(SQL_QUERY_ERR_CHECK), fp);
+
+        if(write_sql_queryErr != SQLITE_OK) //Auth check using query if != correct key -> SQL error
+        {
+            fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
+
+            exit(EXIT_FAILURE);
+        }
+
+        pclose(fp); // Close pipe
     }
 
     sqlite3_close(db);
