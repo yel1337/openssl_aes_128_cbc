@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #define SQLITE_HAS_CODEC 1
 #define TMPMAX 32
+#define AUTH_ERROR 0
+#define AUTH_SUCCESS 1
 
 int encrypt(unsigned char *plaintext, int plaintext_len,  unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
 {
@@ -88,23 +90,18 @@ static int callback( void *data, int argc, char **argv, char **azColName)
         printf("key: %s\n", argv[i]);
     }
 }
+// Function prototpes
+static int key_auth_check(unsigned char *key, FILE *fp_auth);
+const char *db_dump(const char *PRAGMA_TMP, FILE *fp, size_t write_pragma, int rc);
+
 int main()
 {
-    unsigned char *plaintext = (unsigned char *)"passwordpassword";
-    FILE *fp;
+    char *zErrMsg = 0;
 
     // Key derivation using PBKDF2 from openssl
-    char tmp[TMPMAX];
-    unsigned char *deprived_key;
-    fp = popen("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:passwordpassword -kdfopt salt:salt -kdfopt iter:2 PBKDF2", "r");
-    if(fp != NULL)
-    {
-         deprived_key = fgets(tmp, TMPMAX, fp);
+    unsigned char *key;
 
-         pclose(fp);
-    }
-
-    unsigned char *key = deprived_key;
+    scanf("openssl kdf -keylen 32 -kdfopt digest:SHA256 -kdfopt pass:%s -kdfopt salt:salt -kdfopt iter:2 PBKDF2", &key);
 
     // Generate IV from CSPRNG
     unsigned char *buf = malloc(16 *sizeof(*buf)); // Rand buffer
@@ -141,15 +138,23 @@ int main()
      */
     sqlite3 *db;
     int rc;
-    rc = sqlite3_open("pass_man_db_test.db", &db); // Open db statement
-    if(rc == SQLITE_ERROR ) {
+
+    rc = sqlite3_open("pass_man_db.db", &db); // Open db statement
+
+    if(rc == SQLITE_ERROR )
+    {
         fprintf(stderr, "%s\n", sqlite3_errmsg(db));
         return(0);
+    } else if(rc == SQLITE_OK) {
+        rc = sqlite3_exec(db, "ATTACH DATABASE 'pass_man_db_encrypted.db' AS pass_man_db_encrypted KEY 'key'", 0, 0, &zErrMsg); // Pragma key not yet done
+
+        rc = sqlite3_exec(db, "SELECT sqlcipher_export('pass_man_db_encrypted');");
+
+        rc = sqlite3_exec(db, "DETACH DATABASE pass_man_db_encrypted;");
     }
 
     // Prepare
     char *sql;
-    char *zErrMsg = 0;
     sqlite3_stmt *stmt;
 
     // Prepare
@@ -179,41 +184,82 @@ int main()
     // Free
     rc = sqlite3_finalize(stmt);
 
-    // Insert PRAGMA key
-    fp = popen("sqlcipher pass_man_db_encrypted.db", "w"); // Open pipe for write end
+    FILE *fp;
+    static int key_auth_check;
+    size_t write_pragma;
+    const char *PRAGMA_TMP;
+    const char *db_dump;
 
-    if(fp == NULL)
+    key_auth_check = key_auth_check(key, fp, db, rc); // Do key_auth_check
+
+    /*
+     * key_auth_check = 0 // AUTH_ERROR
+     * key_auth_check = 1 // AUTH_SUCCESS
+     */
+    if(key_auth_check == 1)
     {
-        perror("popen sqlcipher failed\n"); //
+        db_dump = db_dump(PRAGMA_TMP, fp, write_pragma, rc, db);
 
+        return 0;
+    } else if(key_auth_check == 0) {
+        fprintf(stderr, "PRAGMA Key AUTH_FAILED");
         exit(EXIT_FAILURE);
     }
-    if(fp != NULL)
-    {
-        const char *PRAGMA_TMP = "PRAGMA key = 'SELECT + \"key\" + FROM + \"key\" + WHERE rowid=1;'";
-        size_t write_pragma;
-        write_pragma = fwrite(PRAGMA_TMP, sizeof(char), strlen(PRAGMA_TMP), fp);
 
-        if(write_pragma != strlen(PRAGMA_TMP)) // Writing err handling
+    sqlite3_close(db);
+}
+
+/*
+ * AUTH
+ */
+static int key_auth_check(unsigned char *key, FILE *fp_auth, sqlite3 *db, int rc )
+{
+        char *zErrMsg = 0;
+
+        fp = popen("sqlcipher pass_man_db_encrypted.db", "w");
+
+        if(fp == NULL)
         {
-            fprintf(stderr, "insert_pragma failed:");
+            perror("popen sqlcipher failed\n"); //
 
             exit(EXIT_FAILURE);
         }
 
-        rc = sqlite3_exec(db, "SELECT * FROM key;", 0, 0, &zErrMsg);
-
-        if(rc != SQLITE_OK) //Auth check using query if != correct key -> SQL error
+        if(fp != NULL)
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-        } else if(rc == SQLITE_OK){
-            sqlite3_exec(db, "SELECT * FROM key;", callback, 0, &zErrMsg);
+            unsigned char *auth_pragma = "PRAGMA key='%s';", enc_key; // enc_key as PRAGMA key
+            size_t write_auth_pragma = fwrite(auth_pragma, sizeof(char), strlen(auth_pragma), fp);
+
+            if(write_auth_pragma != strlen(auth_pragma))
+            {
+                fprintf(stderr, "auth_pragma failed\n");
+            }
+
+            rc = sqlite3_exec(db, "SELECT * FROM key;", callback, 0, &zErrMsg);
+
+            if(rc == SQLITE_ERROR) // If rc == SQLITE_ERROR -> Query will exec || enc_key is not the correct PRAGMA key
+            {
+                fprintf(stderr, "SQL error: AUTH_FAILED\n");
+
+                exit(EXIT_FAILURE);
+
+                return AUTH_ERROR;
+            }
+            if(rc == SQLITE_OK)
+            {
+                return AUTH_SUCCESS;
+            }
+
+            pclose(fp); // Close pipe
         }
+}
+const char *db_dump(const char *PRAGMA_TMP, FILE *fp, size_t write_pragma, int rc, sqlite3 *db;)
+{
+        rc = sqlite3_exec(db, "SELECT * FROM key;", callback, 0, &zErrMsg);
 
-        pclose(fp); // Close pipe
-    }
-
-    sqlite3_close(db);
+        if(rc == SQLITE_ERROR)
+        {
+             fprintf(stderr, "SQL error: ERROR DUMPING DB\n");
+        }
 }
 
