@@ -89,7 +89,7 @@ static int credentials_callback(void *data, int argc, char **argv, char **azColN
         printf("%s\n", azColName[i]);
     }
 }
-const int key_auth_check(unsigned char *key, FILE *fp_auth);
+const int key_auth_check(unsigned char *key);
 void insert_data_to_db(sqlite3 *db, int rc, unsigned char *kdf_key, char *username)
 {
         sqlite3_stmt *stmt;
@@ -106,8 +106,8 @@ void insert_data_to_db(sqlite3 *db, int rc, unsigned char *kdf_key, char *userna
         // Finalize
         rc = sqlite3_finalize(stmt);
 }
-
-int main()
+int kdf_auth_check(unsigned char *kdf_key); 
+int main(int argc, char *argv[])
 {
 
     /*
@@ -119,7 +119,10 @@ int main()
     FILE *fp;
     int key_auth;
 
-    key_auth = key_auth_check(kdf_key, fp); // Do key_auth_check
+    char *value = getenv("deprived_key");
+    unsigned char *kdf = value;
+
+    key_auth = kdf_auth_check(kdf); // Do key_auth_check
 
     /*
      * key_auth_check = 0 // AUTH_ERROR
@@ -138,14 +141,14 @@ int main()
         }
 
         pclose(fp);
-    } else if(key_auth_check == 0) {
+    } else if(kdf_auth_check == 0) {
         fprintf(stderr, "PRAGMA Key AUTH_FAILED");
         exit(EXIT_FAILURE);
     }
 
-    char *username = "Daniel";
+    char *username = argv[1];
 
-    insert_data_to_db(db, rc, kdf_key, username);
+    printf("%s\n", username);
 
     sqlite3_close(db);
 }
@@ -153,8 +156,9 @@ int main()
 /*
  * KEY_AUTH
  */
-int key_auth_check(kdf_key, FILE *fp)
+int kdf_auth_check(unsigned char *kdf_key)
 {
+	FILE *fp;
         fp = popen("sqlcipher test.db", "w");
 
         char *sprintf_buffer = malloc(128 *sizeof(char));
@@ -166,11 +170,11 @@ int key_auth_check(kdf_key, FILE *fp)
 
         if(pragma_key_auth != sizeof(sprintf_buffer))
         {
-                fprintf(stderr, "pragma_key_auth: ERROR\n");
-
-                return AUTH_ERROR;
+                fprintf(stderr, "\npragma_key_auth: ERROR\n");
 
                 exit(EXIT_FAILURE);
+        
+		return AUTH_ERROR;
         } else if(pragma_key_auth == sizeof(sprintf_buffer)) {
                 return AUTH_SUCCESS;
         }
