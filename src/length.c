@@ -17,6 +17,7 @@ char len_err(char formatted_string, int signal)
 int len_re_enter(char formatted_string)
 {
 	FILE *po; // Pipe open
+	char err_len;
 	
 	switch(formatted_string) {
 		case "username":
@@ -26,7 +27,9 @@ int len_re_enter(char formatted_string)
 
 			if(len_username == 0)
 			{
-				return len_err(formatted_string, 0);	
+				err_len = len_err(formatted_string, 0);
+
+				return err_len;	
 			} 
 			if(len_username == 1) 
 			{
@@ -34,7 +37,9 @@ int len_re_enter(char formatted_string)
 			} 
 			if(len_username == 2) 
 			{
-				return len_err(formatted_string, 2); 
+				err_len = len_err(formatted_string, 2);
+				
+				return err_len;
 			}
 			
 			pclose(fp);
