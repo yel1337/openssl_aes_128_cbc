@@ -7,8 +7,8 @@
 #define SUCCESS 1
 
 typedef struct{
-	char username[MAX_INPUT_LENGTH];
-	char password[MAX_INPUT_LENGTH];
+	char username[MAX_INPUT_LEN];
+	char password[MAX_INPUT_LEN];
 } credentials;
 
 int len_re_enter(char formatted_string);
