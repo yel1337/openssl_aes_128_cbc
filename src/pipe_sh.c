@@ -34,6 +34,9 @@ void p_open_input(FILE *ip)
 	
 	char *exptd_usr = getenv("username");
 	exprtd_usr_var.username = exptd_usr;
+
+	char *exptd_pphrase = getenv("passphrase");
+	exprtd_pphrase_var.pphrase = exptd_usr;
 }
 
 /*

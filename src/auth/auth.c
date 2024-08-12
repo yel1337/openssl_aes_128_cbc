@@ -22,18 +22,18 @@ int usncmp(const char *lhs, const char *rhs)
  */
 int username_if_exist(char *username)
 {	
-	FILE *fp; 
+	FILE *po; 
 	char sprintf_buffer[100];
 	char string_to_hash_buffer[100]; 	
 	char hashed_username[100]; 
 
 	int string_to_hash = sprintf(sprintf_buffer, "echo \"%s\" | sha256sum", username);
 
-	fp = popen(sprintf_buffer, "r");
+	po = popen(sprintf_buffer, "r");
 	
-	hashed_username = fgets(string_to_hash_buffer, sizeof(string_to_hash_buffer), fp);
+	hashed_username = fgets(string_to_hash_buffer, sizeof(string_to_hash_buffer), po);
 		
-	pclose(fp);	
+	pclose(po);	
 
 	if(string_to_hash != strlen(string_to_hash))
 	{
@@ -42,7 +42,7 @@ int username_if_exist(char *username)
 
 	char fgets_buffer[32]; 
 	
-	fp = fpopen("/home/yel/openssl_aes_128_cbc/usr.txt", "r"); 
+	po = fpopen("/home/yel/openssl_aes_128_cbc/usr.txt", "r"); 
 	
 	// Run through txt file 	
 	while(fgets(fgets_buffer, sizeof(fgets_buffer), fp) != sizeof(fgets_buffer))
@@ -60,29 +60,28 @@ int username_if_exist(char *username)
 		}
 	}
 	
-	fclose(fp);
+	fclose(po);
 }
 int do_auth_check(int len_sig)
 {
-  if(len_sig == 1)
-        {
-
-                if(username_if_exist(export_usn) == 0)
-                {
-                        printf("Create user? ");
-                        scanf("%c\n", &opt);
-
-                        if(opt == 'y')
-                        {
-                                fp = popen("create_user.sh", "w");
-                                pclose(fp);
-                        }
-                        if(opt == 'n')
-                        {
-                                exit(0);
-                        }
+  
+  	if(len_sig == 1)
+	{
+	if(username_if_exist(export_usn) == 0)
+	{
+     	 	printf("Create user? ");
+         	scanf("%c\n", &opt);
+		if(opt == 'y')
+           	{
+                	p_open_create();
+                                
+            	}
+         	if(opt == 'n')
+            	{
+      			exit(0);
+        	}
                 } else if(username_if_exist(export_usn) == 1) {
-                        // SUCCESS -> ??? PASSWORD AUTH?
+   			// SUCCESS -> ??? PASSWORD AUTH?
                 }
 
         } else if(len_sig == 0) {

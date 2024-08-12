@@ -4,9 +4,11 @@
 
 typedef struct {
         char username[MAX_INPUT_LEN];
+		char pphrase[MAX_INPUT_LEN];
 } EXPORTED_CREDENTIALS;
 
 EXPORTED_CREDENTIALS *exptd_usr_var;
+EXPORTED_CREDENTIALS *exptd_pphrase_var;
 
 typedef struct { 
 	char tmp_username[MAX_INPUT_LEN];
