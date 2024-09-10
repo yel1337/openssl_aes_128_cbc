@@ -2,47 +2,34 @@
 #include <stdlib.h>
 #include "/home/yel/openssl_aes_128_cbc/include/pipe_sh.h"
 #include "/home/yel/openssl_aes_128_cbc/include/length.h"
-#include "/home/yel/openssl_aes_128_cbc/include/hash/ptext_to_sha256.h"
+#include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
+#include "/home/yel/openssl_aes_128_cbc/include/prompt/get_h.h"
 
-void p_close_input(FILE *open_pipe);
- 
-# Create user prompt - pipe
-void p_open_create(FILE *cp)
+void p_write_to_shadow()
 {
-	cp = popen("./create_user.sh", "w");
-
-	char *exp_usr_cp = getenv("cp_username");	
+	FILE *txt_file = fopen("/home/yel/openssl_aes_128_cbc/src/etc/shadow.txt", "w");
 	
-	p_close_input(cp);
-
-	// Convert deprived exported variable from shell into hashed 256sum	
-	char sha256_usr = ptext_sha256(exp_usr_cp);
-
-	FILE *fp; 
-	fp = fopen("/home/yel/openssl_aes_128_cbc/usr/usr.txt", "w");
-
-	//Write down sha256 digest to txt file 
-	fwrite(sha256_usr, sizeof(char), strlen(sha256_usr), fp);	
-
-	fclose(fp);
-}
-
-# Normal prompt - pipe  
-void p_open_input(FILE *ip)
-{
-	ip = popen("./input.sh", "w");
+	const char *format_str = "%s: %s";
 	
-	char *exptd_usr = getenv("username");
-	exprtd_usr_var.username = exptd_usr;
+	USER usr_buf;
 
-	char *exptd_pphrase = getenv("passphrase");
-	exprtd_pphrase_var.pphrase = exptd_usr;
-}
+	unsigned char *sha256_key = key_to_sha256(); 
+	
+	char *str;
+	sprintf(str, format_str, usr_buf.usr, sha256_key);	
 
-/*
- * A function to close opened pipe
- */
-void p_close_input(FILE *open_pipe)
-{
-	pclose(opened_input);
+	// Write to shadow file 
+	fwrite(format_str, sizeof(char), strlen(str), txt_file);
+
+	if(strlen(format_str) < strlen(str))
+	{
+		printf("fwrite error occured\n");
+	}
+
+	if(strlen(format_str) == strlen(str))
+	{
+		printf("fwrite success\n");
+	}
+
+	fclose(txt_file);
 }

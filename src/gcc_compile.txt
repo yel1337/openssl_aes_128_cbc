@@ -1,0 +1,1 @@
+gcc -o main /home/yel/openssl_aes_128_cbc/src/kms/kms.c /home/yel/openssl_aes_128_cbc/src/prompt/get.c /home/yel/openssl_aes_128_cbc/src/pipe_sh.c main.c -lssl -lcrypto

@@ -1,53 +1,50 @@
 #include <stdio.h>
 #include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
 
-char key_gen(EXPORTED_CREDENTIALS *exptd_pphrase_var) 
+char *key_gen() 
 {
 	FILE *po;
-	SALT *get_salt; 
-	char kdf_buffer[16]; 
+	char *kdf_buffer = malloc(1000 * sizeof(char)); 
 
-	do_salt_gen();
-	unsigned char salted = get_salt->generated_salt; 
-	
 	/*
 	 * void p_open_input() from pipe_sh.h should be initialize prior key derivation operation 
 	 */
-	char openssl_pbkdf2;
-	char pphrase_var = exptd_pphrase_var.pphrase;
+	char openssl_pbkdf2[1000];
+	char pphrase[] = "password";
+	char salt[] = "salt";
 
-	sprintf(openssl_pbkdf2, "openssl kdf -keylen 16 -kdfopt digest:sha256 -kdfopt pass:%s -kdfopt salt:%s-kdfopt iter:1 PBKDF2", pphrase_var, salted);
+	sprintf(openssl_pbkdf2, "openssl kdf -keylen 16 -kdfopt digest:sha256 -kdfopt pass:%s -kdfopt salt:%s -kdfopt iter:1 PBKDF2", pphrase, salt);
+	
 	po = popen(openssl_pbkdf2, "r");
 
 	// Read output from file stream 
-	kdf_buffer = fgets(kdf_buffer, sizeof(kdf_buffer), po);
+	fgets(kdf_buffer, sizeof(kdf_buffer), po);
 
 	// Close Pipe 
 	pclose(po);
 
-	return kdf_buffer; 
+	return kdf_buffer;
 }
 
-void key_write(char kdf)
+void key_write(char *kdf)
 {
-	FILE fp; 
-	char *deprived_key = (char *) kdf; 
+	FILE *fp;  
 
 	fp = fopen("key.txt.", "w");
 
-	fwrite(deprived_key, sizeof(char), strlen(deprived_key), fp); 
+	fwrite(kdf, sizeof(char), strlen(kdf), fp); 
 
 	fclose(fp);
 }
 
-void do_salt_gen()
+unsigned char *do_salt_gen()
 {
-	SALT *get_salt; 
+	SALT get_salt; 
 	unsigned char *salt_buf = malloc(16 * sizeof(char)); 
 
 	RAND_bytes(salt_buf, 16);
 
-	get_salt->generated_salt = salt_buf;
+	return salt_buf;
 }
 
 void free_salt(unsigned char *salt_buffer)
@@ -55,26 +52,25 @@ void free_salt(unsigned char *salt_buffer)
 	free(salt_buffer);
 }
 
-char key_to_sha256();
+unsigned char *key_to_sha256()
 {
-	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-    const EVP_MD *type = EVP_sha256();
-    unsigned char *md;
-    unsigned int*s;
+	EVP_MD_CTX *mdctx =  EVP_MD_CTX_new();;
+	const EVP_MD *EVP_sha256(void);
+    unsigned char *md; // <---- IM THE PROBLEM IT'S ME 
+    unsigned int *s;
     size_t cnt;
 
-	char get_key = ket_gen();
-	const void *data = get_key;
+	//char *get_key = key_gen();
+	const void *data = key_gen();
 
+	EVP_MD_CTX_init(mdctx);
+	
 	EVP_DigestInit(mdctx, EVP_sha256()); 
 
 	EVP_DigestUpdate(mdctx, data, cnt);
 
     EVP_DigestFinal(mdctx, md, s);
 
-	unsigned char hashed_value;
-    unsigned char hashed_value_len = sizeof(size);
-    hashed_value = (unsigned char)md[hashed_value_len];
-
-    return hashed_value;
+    return md;
 }
+
