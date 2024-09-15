@@ -4,7 +4,7 @@
 char *key_gen() 
 {
 	FILE *po;
-	char *kdf_buffer = malloc(1000 * sizeof(char)); 
+	char *kdf_buffer; 
 
 	/*
 	 * void p_open_input() from pipe_sh.h should be initialize prior key derivation operation 
@@ -17,8 +17,10 @@ char *key_gen()
 	
 	po = popen(openssl_pbkdf2, "r");
 
+	int count = sizeof(kdf_buffer);
+
 	// Read output from file stream 
-	fgets(kdf_buffer, sizeof(kdf_buffer), po);
+	fgets(kdf_buffer, count, po);
 
 	// Close Pipe 
 	pclose(po);
@@ -54,23 +56,23 @@ void free_salt(unsigned char *salt_buffer)
 
 unsigned char *key_to_sha256()
 {
-	EVP_MD_CTX *mdctx =  EVP_MD_CTX_new();;
-	const EVP_MD *EVP_sha256(void);
-    unsigned char *md; // <---- IM THE PROBLEM IT'S ME 
-    unsigned int *s;
-    size_t cnt;
+	EVP_MD_CTX *mdctx =  EVP_MD_CTX_new();
+    	const EVP_MD *EVP_sha256(void);
+	const EVP_MD *md;
+	unsigned char *md_value;
+    	unsigned int *s;
+    	size_t cnt;
 
-	//char *get_key = key_gen();
-	const void *data = key_gen();
+	char *data = key_gen();
 
 	EVP_MD_CTX_init(mdctx);
 	
 	EVP_DigestInit(mdctx, EVP_sha256()); 
 
-	EVP_DigestUpdate(mdctx, data, cnt);
+	EVP_DigestUpdate(mdctx, &data, cnt);
 
-    EVP_DigestFinal(mdctx, md, s);
+    	EVP_DigestFinal(mdctx, md_value, s);
 
-    return md;
+    	return md_value;
 }
 
