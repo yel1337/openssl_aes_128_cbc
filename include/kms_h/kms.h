@@ -16,7 +16,7 @@ typedef struct {
 	uint32_t array_key_index[MAX_BYTES]; 
 } INDEX;  
 
-char *key_gen(); 
+void *key_gen(); 
 unsigned char *key_to_sha256();
 void free_salt(unsigned char *salt_buffer); 
 unsigned char *do_salt_gen();

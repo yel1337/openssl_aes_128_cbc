@@ -1,10 +1,10 @@
 #include <stdio.h>
+#include <openssl/bio.h>
 #include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
 
-char *key_gen() 
+void *key_gen() 
 {
 	FILE *po;
-	char *kdf_buffer; 
 
 	/*
 	 * void p_open_input() from pipe_sh.h should be initialize prior key derivation operation 
@@ -17,15 +17,8 @@ char *key_gen()
 	
 	po = popen(openssl_pbkdf2, "r");
 
-	int count = sizeof(kdf_buffer);
-
-	// Read output from file stream 
-	fgets(kdf_buffer, count, po);
-
 	// Close Pipe 
 	pclose(po);
-
-	return kdf_buffer;
 }
 
 void key_write(char *kdf)
@@ -57,9 +50,8 @@ void free_salt(unsigned char *salt_buffer)
 unsigned char *key_to_sha256()
 {
 	EVP_MD_CTX *mdctx =  EVP_MD_CTX_new();
-    	const EVP_MD *EVP_sha256(void);
-	const EVP_MD *md;
-	unsigned char *md_value;
+	const EVP_MD *md = EVP_sha256();
+	unsigned char *md_value = (char *)malloc(100 * sizeof(char));
     	unsigned int *s;
     	size_t cnt;
 
@@ -67,11 +59,11 @@ unsigned char *key_to_sha256()
 
 	EVP_MD_CTX_init(mdctx);
 	
-	EVP_DigestInit(mdctx, EVP_sha256()); 
+	EVP_DigestInit_ex(mdctx, md, NULL); 
 
 	EVP_DigestUpdate(mdctx, &data, cnt);
 
-    	EVP_DigestFinal(mdctx, md_value, s);
+    	EVP_DigestFinal_ex(mdctx, md_value, s);
 
     	return md_value;
 }

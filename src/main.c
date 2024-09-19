@@ -1,14 +1,12 @@
 #include <stdio.h>
 #include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
-#include "/home/yel/openssl_aes_128_cbc/include/prompt/get_h.h"
 #include "/home/yel/openssl_aes_128_cbc/include/pipe_sh.h"
 
 int main()
 {
-	USER usr_buf;  
+	FILE *fp_sh;
 
-	get_usr(); 
+	fp_sh = popen("./main.sh", "w");
 
-	p_write_to_shadow();
-
+	pclose(fp_sh); 
 }

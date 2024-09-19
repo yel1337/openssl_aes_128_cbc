@@ -4,23 +4,24 @@
 #include "/home/yel/openssl_aes_128_cbc/include/length.h"
 #include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
 
-void p_write_to_shadow() // IM THE PROBLEM ITS ME - BUS ERROR 
+void p_write_to_shadow()  
 {
-	FILE *txt_file = fopen("/openssl_aes_128_cbc/src/etc/shadow.txt", "w");
-	
-	char usr[] = "daniel"; // Hardcoded string 
+	FILE *txt_file = fopen("shadow.txt", "w");
+
+	if(!txt_file)
+	{
+		printf("file opening failed\n");
+	}
+
+	const char *usr = "daniel"; // Hardcoded string 
 
 	unsigned char *sha256_key = key_to_sha256(); 
-		
-	char *str;
-	sprintf(str, "%s: %s", usr, &sha256_key);	
+	
+	//char *buf = (char *)malloc(100 * sizeof(char));
+	char buf[1000];
+	sprintf(buf, "%s: %s", usr, &sha256_key);
 
-	const void *formatted_string = (const void *)str;
-
-	// Write to shadow file
-	size_t size;
-	size_t count; 
-	fwrite(formatted_string, size, count, txt_file);
+	fputs(buf, txt_file);	
 
 	fclose(txt_file);
 }
