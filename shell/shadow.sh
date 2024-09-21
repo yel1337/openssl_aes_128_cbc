@@ -1,5 +1,6 @@
 # as source file 
-source ./kdf_src.sh
+source shell/kdf_src.sh
+source shell/kdf.sh
 
 # Shadow txt file
 file_txt = (/home/yel/openssl_aes_128_cbc/src/shadow.txt)
