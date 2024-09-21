@@ -1,9 +1,8 @@
-# Username prompt 
-read -p "Enter username: " username
-export username 
+get_prompt()
+{
+	# Username prompt 
+	read -p "Enter username: " username
 
-# Password prompt 
-read -s -p "Enter passphrase: " passphrase
-export passphrase 
-echo 
-	
+	# Passphrase prompt 
+	read -s -p "Enter passphrase: " passphrase
+}

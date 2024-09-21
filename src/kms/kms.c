@@ -2,13 +2,15 @@
 #include <openssl/bio.h>
 #include "/home/yel/openssl_aes_128_cbc/include/kms_h/kms.h"
 
+/*
+ *  Function Deprecated 
+ *
+ *  key_gen() - digest sha256 hashed value from openssl PBKDF shell
+ */
 void *key_gen() 
 {
 	FILE *po;
 
-	/*
-	 * void p_open_input() from pipe_sh.h should be initialize prior key derivation operation 
-	 */
 	char openssl_pbkdf2[1000];
 	char pphrase[] = "password";
 	char salt[] = "salt";
@@ -17,26 +19,11 @@ void *key_gen()
 	
 	po = popen(openssl_pbkdf2, "r");
 
-	// Close Pipe 
-	pclose(po);
+	pclose(po); // Close FILE* pipe 
 }
 
-void key_write(char *kdf)
+unsigned char *do_salt_gen(unsigned char *salt_buf)
 {
-	FILE *fp;  
-
-	fp = fopen("key.txt.", "w");
-
-	fwrite(kdf, sizeof(char), strlen(kdf), fp); 
-
-	fclose(fp);
-}
-
-unsigned char *do_salt_gen()
-{
-	SALT get_salt; 
-	unsigned char *salt_buf = malloc(16 * sizeof(char)); 
-
 	RAND_bytes(salt_buf, 16);
 
 	return salt_buf;
@@ -47,6 +34,14 @@ void free_salt(unsigned char *salt_buffer)
 	free(salt_buffer);
 }
 
+/*
+ * Function Deprecated
+ *
+ * key_to_sha256() - convert deprived key into SHA-256
+ *
+ * no longer recommended as "openssl_aes_128_cbc/src/main.sh" digest 
+ * SHA-256 and write on file   
+ */
 unsigned char *key_to_sha256()
 {
 	EVP_MD_CTX *mdctx =  EVP_MD_CTX_new();
