@@ -7,4 +7,6 @@ pphrase = $passphrase
 # SHA256 buf 
 SHA256 = ""
 
+# Salt buf
+salt_buf = ""
 

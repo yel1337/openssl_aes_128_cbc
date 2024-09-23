@@ -17,4 +17,7 @@ int main(int argc, char *argv[])
 	free_salt(argv[1]);	
 	
 	pclose(pipe_exec);
+
+	// Do write in file 
+	system("shell/shadow.sh");
 }

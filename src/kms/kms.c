@@ -27,6 +27,8 @@ unsigned char *do_salt_gen(unsigned char *salt_buf)
 	RAND_bytes(salt_buf, 16);
 
 	return salt_buf;
+
+	exit();
 }
 
 void free_salt(unsigned char *salt_buffer)
