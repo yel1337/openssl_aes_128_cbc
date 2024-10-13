@@ -22,18 +22,12 @@ void *key_gen()
 	pclose(po); // Close FILE* pipe 
 }
 
-unsigned char *do_salt_gen(unsigned char *salt_buf)
+void do_salt_gen(unsigned char *env_val, unsigned char *salt_bytes)
 {
-	RAND_bytes(salt_buf, 16);
-
-	return salt_buf;
-
-	exit();
-}
-
-void free_salt(unsigned char *salt_buffer)
-{
-	free(salt_buffer);
+	salt_bytes = (unsigned char *)malloc(16 * sizeof(char));
+	RAND_bytes(salt_bytes, 16);
+	
+	env_val = salt_bytes;  
 }
 
 /*

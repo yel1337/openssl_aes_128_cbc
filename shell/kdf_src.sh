@@ -1,12 +1,11 @@
-
-source prompt/get_pphrase.sh
-
 # Pphrase buf 
-pphrase = $passphrase  
+#passphrase=""  
+
+set -x
 
 # SHA256 buf 
-SHA256 = ""
+SHA256="$hashed_val"
 
 # Salt buf
-salt_buf = ""
+salt_buf=""
 

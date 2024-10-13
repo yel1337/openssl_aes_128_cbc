@@ -1,43 +1,13 @@
 # as source file 
-source shell/kdf_src.sh
-source shell/kdf.sh
+source /home/yel/openssl_aes_128_cbc/shell/kdf_src.sh
+source /home/yel/openssl_aes_128_cbc/shell/exec.sh
+source /home/yel/openssl_aes_128_cbc/shell/get_pphrase.sh
 	
 # Shadow txt path	
 file_txt = (/home/yel/openssl_aes_128_cbc/src/shadow.txt)
 
-write_on_file()
-{
-        # $2 as $SHA256
-
-        echo "$usr:"
-	if[-z "$2"]; then 
-		echo "ERR: usr struct empty"
-		echo 
-	
-	# IF EXIST OR ERR  
-	if[credential_check_in_file == 0]; then 
-		echo "ERR: usr already exist"
-		echo ""
-	
-	if[credential_check_in_file == 2]; then 
-		echo "ERR: txt file"
-		echo ""
-	 
-	# $SHA256 from "../kdf_src.sh"
-	#
-	#  IF credential_check_in_file == 1 
-	#  then write in txt file 
-	
-	if[-z "$2"]; then 
-		echo "ERR: SHA256 empty"
-		echo 
-
-	if(credential_check_in_file == 1); then
-		echo $usr":"
-
-		# "$2" as $SHA256  
-		echo "$2" > $file_txt
-
+write_on_file() {
+	echo "$SHA256" > /home/yel/openssl_aes_128_cbc/src/shadow.txt
 }
 
 credential_check_in_file()
@@ -58,7 +28,3 @@ credential_check_in_file()
 		return 2
 }
 
-# Exec write to shadow file function
-#
-# Write SHA256 on file 
-write_on_file "$SHA256" 

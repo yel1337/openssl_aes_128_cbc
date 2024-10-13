@@ -1,1 +1,6 @@
 gcc -o main /home/yel/openssl_aes_128_cbc/src/kms/kms.c /home/yel/openssl_aes_128_cbc/src/prompt/get.c /home/yel/openssl_aes_128_cbc/src/pipe_sh.c main.c -lssl -lcrypto
+
+** SQLCIPHER COMPILE
+gcc main.c -o main -l /usr/local/include/sqlcipher -L /usr/local/lib/libsqlcipher.a -lsqlcipher
+
+gcc -o main main.c -I /usr/local/include/sqlcipher/ -L /usr/local/lib/libsqlcipher.a -lsqlcipher -lssl -lcrypto -l sqlite3
