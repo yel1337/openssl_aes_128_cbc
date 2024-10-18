@@ -5,29 +5,41 @@
 #include <string.h>
 #include "/home/yel/openssl_aes_128_cbc/src/sql/turing_sql.h"
 
+#define KEY_MACRO_1 1
+#define KEY_MACRO_0 0
+
 static int key_err(int check_db_ret_int)
 {
 	int key_result;
 
-	if(check_db_ret_int == 0) {
-		key_result = 0;
+	/*
+	 * CHECK_DB_MACRO_O returned by check_db_err() determines if PRAGMA key 
+	 * entered is incorrect or not the right key used during DB setup 
+	 *
+	 * Likewise in key_err() wherein KEY_MACRO_0 and KEY_MACRO_1 works in
+	 * similar ways but it is intended for key authentication
+	 */
+
+	if(check_db_ret_int == CHECK_DB_MACRO_HAS_NO_ROW) {
+		key_result = KEY_MACRO_0;
 
 		return key_result; 
 	} 
-	else if(check_db_ret_int == 1) {
-		key_result = 1;
+	else if(check_db_ret_int == CHECK_DB_MACRO_HAS_ROW) {
+		key_result = KEY_MACRO_1;
 		
 		return key_result; 	
 	}
 }
 
-static int open_db(sqlite3 *db, const char *key)
+// THIS IS THE DAMN PROBLEM
+static void open_db(sqlite3 *db, const char *dbN, const char *key)
 {
-	sqlite3_open("proto_enc.db", &db);
+	sqlite3_open(dbN, &db);
 	
 	sqlite3_key(db, key, strlen(key));
 
-	int db_err = check_db_err(db, key);
+	int db_err = check_db_err(db, dbN,key);
 
 	/*
 	 * key_err(int check_db_ret_int) is some sort of a signal to SQLCipher whether the key / PRAMGA key entered 
@@ -37,11 +49,12 @@ static int open_db(sqlite3 *db, const char *key)
 	 * entered or submitted is not the correct key used by DB during setup 	
 	 *
  	 */
+
 	int key_r; 
-	if(db_err == 1) {
+	if(db_err == CHECK_DB_MACRO_HAS_ROW) {
 		key_r = key_err(db_err);
 	}	
-	else if(db_err == 0) {
+	else if(db_err == CHECK_DB_MACRO_HAS_NO_ROW) {
 		key_r = key_err(db_err);
 
 		sqlite3_close(db);
@@ -62,15 +75,16 @@ int main()
 	char *tb_c;
 	const char *tb_t; 
 
-	const char *db_key = set_key(key);
+	const char *db_key = "correctkey";
+	const char *dbN = "encrypted.db"; 	
 
-	open_db(db, db_key);
+	int check_db_sig = check_db_err(db, dbN, db_key);
 
-	get_tb(rc, db, stmt, tb_c, tb_t);
+	char *table_name = get_tb(db, dbN, db_key, stmt);
 
-	get_column(rc, db, stmt);
+	get_column(db, dbN, db_key, stmt, table_name);
 
-	insert_into(db, stmt, tb, clmn, dt);
+	insert_into(db, dbN, db_key, stmt, table_name);
 
-	ret(db, stmt);
+	ret(db, stmt, table_name);
 }

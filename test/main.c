@@ -5,20 +5,26 @@
 #include "sqlite3.h"
 
 
-char *ret_tb(int rc, sqlite3 *db, sqlite3_stmt *stmt, const char *command, char *my_copy)
-{
-	
-	command = "SELECT name FROM sqlite_master WHERE type = 'table';"; 
+char *ret_tb(sqlite3 *db, sqlite3_stmt *stmt)
+{	
+	int rc; 
+	const char *command = "SELECT name FROM sqlite_master WHERE type = 'table';"; 
+	const char *key = "correctkey";
+
+	sqlite3_open("test_encrypted.db", &db);
+
+	sqlite3_key(db, key, strlen(key)); 
 
 	rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
 	if(rc != SQLITE_OK) {
   		printf("PREP err - %s\n", sqlite3_errmsg(db));
         }
+	char *my_copy;
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
     		const unsigned char *text = sqlite3_column_text(stmt, 0);
 
-		my_copy = strdup((const char *)text);	
+			my_copy = strdup((const char *)text);	
 	} else {
     		printf("No row returned.\n");
 	}
@@ -59,26 +65,8 @@ int main()
 	const char *command; 
 	char *my_copy; 
 
-	rc = sqlite3_open("../enc.db", &db);	
-	if(rc != SQLITE_OK) {
-  		printf("DB err - %s\n", sqlite3_errmsg(db));
-        }
-	
-	const char *key = "correctkey";
-	
-	rc = sqlite3_key(db, key, strlen(key)); 
-	if(rc != SQLITE_OK) {
-  		printf("KEY err - %s\n", sqlite3_errmsg(db));
-        }
+	char *tb = ret_tb(db, stmt);
 
-	char *tb_text = ret_tb(rc, db, stmt, command, my_copy);
+	printf("%s\n", tb);
 
-	const char *column;
-
-	char *col_text = ret_col(rc, db, stmt, column,command, tb_text);
-
-	printf("%s\n", col_text);
-
-	sqlite3_close(db);
-		
 }

@@ -5,11 +5,10 @@
 #include <string.h>
 #include "/home/yel/openssl_aes_128_cbc/src/sql/turing_sql.h"
 
-int check_db_err(sqlite3 *db, const char *key)
+int check_db_err(sqlite3 *db, const char *dbN,const char *key)
 {
         const char *command = "SELECT * FROM sqlite_master WHERE type = 'table';";
         sqlite3_stmt *stmt;
-	const char *dbN;
 	int rc; 
 
         rc = sqlite3_open(dbN, &db);
@@ -28,12 +27,11 @@ int check_db_err(sqlite3 *db, const char *key)
 
                 sqlite3_close(db);
          }
-
-        int i; 
+ 
         if (sqlite3_step(stmt) == SQLITE_ROW) {
-                return 1;
+                return CHECK_DB_MACRO_HAS_ROW;
         } else {
-                return 0;
+                return CHECK_DB_MACRO_HAS_NO_ROW;
         }
 }
 
@@ -44,16 +42,19 @@ static char tb_err(sqlite3 *db)
 	return tb_err_msg;
 }
 
-void *get_tb(int rc, sqlite3 *db, sqlite3_stmt *stmt, const char *tb_c, const char *tb_t)
+char *get_tb(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt)
 {
-	struct TABLE *tb;
+        int rc;
+        struct TABLE *tb; 
 
-        const char *command = malloc(1000 * sizeof(char));
-        command = "SELECT name FROM sqlite_master WHERE type = 'table';";
+        sqlite3_open(dbN, &db);
 
-        rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+        sqlite3_key(db, key, strlen(key));
 
-        sqlite3_finalize(stmt);
+        rc = sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type = 'table';", -1, &stmt, NULL);
+        if(rc != SQLITE_OK) {
+                printf("%s \n", sqlite3_errmsg(db));
+        }
 
         if (rc != SQLITE_OK) {
 		tb_err(db);
@@ -62,15 +63,18 @@ void *get_tb(int rc, sqlite3 *db, sqlite3_stmt *stmt, const char *tb_c, const ch
          }
 
         if (sqlite3_step(stmt) == SQLITE_ROW) {
-                tb_t = sqlite3_column_text(stmt, 0);
+               const char *tb_t = sqlite3_column_text(stmt, 0);
                 
-		tb_c = strdup((const char *)tb_t);
-		tb->tablename = tb_c;
+		tb->tablename = strdup((const char *)tb_t);
         } else {
                 printf("get_tb: no row returned.\n");
         }
 
-       
+        char *tb_c = tb->tablename;
+
+        return tb_c; 
+
+        sqlite3_close(db);
 }
 
 static char column_err(sqlite3 *db)
@@ -80,42 +84,30 @@ static char column_err(sqlite3 *db)
         return column_err_msg;
 }
 
-void *get_column(int rc, sqlite3 *db, sqlite3_stmt *stmt)
-{
+void *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, char *table) {
 	struct TABLE *tb; 
 	struct COLUMN *clmn; 
 
-        char column_buf[BUF_SIZE];
-        sprintf(column_buf, "SELECT name FROM pragma_table_info('%s');", tb->tablename);
+        sqlite3_open(dbN, &db);
 
-        rc = sqlite3_prepare_v2(db, column_buf, -1, &stmt, NULL);
+        sqlite3_key(db, key, strlen(key));
 
-        if (rc != SQLITE_OK) {	
-		column_err(db);
+        // char column_buf; 
+        // sprintf(column_buf, "SELECT name FROM pragma_table_info('%s');", tb->tablename);
 
-                sqlite3_close(db);
-         }
+        sqlite3_prepare_v2(db, "", -1, &stmt, NULL);
 
-	const char *clmn_username;
-	const char *clmn_email;
-	const char *clmn_password;
+        //
 
-	static char *clmn_username_c;
-	static char *clmn_email_c;
-	static char *clmn_password_c;
-	
+	const char *clmn_firstname;
+	const char *clmn_lastname;
+
         if (sqlite3_step(stmt) == SQLITE_ROW) {
-                clmn_username = sqlite3_column_text(stmt, 0);
-                clmn_email = sqlite3_column_text(stmt, 1);
-                clmn_password = sqlite3_column_text(stmt, 2);
+                clmn_firstname = sqlite3_column_text(stmt, 0);
+                clmn_lastname = sqlite3_column_text(stmt, 1);
 
-                clmn_username_c = strdup((const char *)clmn_username);
-                clmn_email_c = strdup((const char *)clmn_email);
-                clmn_password_c = strdup((const char *)clmn_password);
-
-		clmn->column_username = clmn_username_c; 
-		clmn->column_email = clmn_email_c; 
-		clmn->column_password = clmn_password_c; 
+		clmn->column_firstname = strdup((const char *)clmn_firstname); 
+		clmn->column_lastname = strdup((const char *)clmn_lastname); 
         } else {
                 printf("get_column(): no row returned.\n");
         }
@@ -130,17 +122,23 @@ static char insert_err(sqlite3 *db)
 
 }
 
-void insert_into(sqlite3 *db, sqlite3_stmt *stmt, struct TABLE *tb, struct COLUMN *clmn, struct DATA dt)
+void insert_into(sqlite3 *db, const char *dbN, const char *key,sqlite3_stmt *stmt, char *tablename)
 {
+        struct COLUMN *clmn; 
+        struct TABLE *tb; 
+        struct DATA dt; 
         int rc; 
 
 	// Hardcoded data 
-	strcpy(dt.username, "daniel"); 
-	strcpy(dt.email, "daniel@ymail"); 
-	strcpy(dt.password, "pass_test"); 
+	strcpy(dt.first_name, "ruby"); 
+	strcpy(dt.last_name, "ann"); 
+
+        sqlite3_open(dbN, &db);
+
+        sqlite3_key(db, key, strlen(key));
 
         static char format_buf[BUF_SIZE];
-        sprintf(format_buf, "INSERT INTO %s (%s %s %s) VALUES (%s, %s, %s);", tb->tablename, clmn->column_username, clmn->column_email, clmn->column_password, dt.username, dt.email, dt.password);
+        sprintf(format_buf, "INSERT INTO %s (%s %s) VALUES (%s, %s);", tablename, clmn->column_firstname, clmn->column_lastname, dt.first_name, dt.last_name);
 
         rc = sqlite3_prepare_v2(db, (const char *)format_buf, -1, &stmt, NULL);
         if (rc != SQLITE_OK) {
@@ -159,7 +157,7 @@ static char ret_err(sqlite3 *db)
 	return ret_err_msg;
 }
 
-void *ret(sqlite3 *db, sqlite3_stmt *stmt)
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, char *tablename)
 {
 	struct COLUMN *clmn; 
 	struct TABLE *tb;
@@ -167,7 +165,7 @@ void *ret(sqlite3 *db, sqlite3_stmt *stmt)
         int rc;
 
 	static char format_buf[BUF_SIZE];
-	sprintf(format_buf, "SELECT %s, %s, %s FROM %s;", clmn->column_username, clmn->column_email, clmn->column_password, tb->tablename);
+	sprintf(format_buf, "SELECT %s, %s FROM %s;", clmn->column_firstname, clmn->column_lastname, tablename);
 
 	rc = sqlite3_prepare_v2(db, (const char *)format_buf, -1, &stmt, NULL);
 	if(rc != SQLITE_OK) {
@@ -176,27 +174,22 @@ void *ret(sqlite3 *db, sqlite3_stmt *stmt)
 		sqlite3_close(db);
 	}
 
-        const char *ret_username;
-        const char *ret_email;
-        const char *ret_password;
+        const char *ret_firstname;
+        const char *ret_lastname;
 
-	static char *ret_username_c;
-	static char *ret_email_c;
-	static char *ret_password_c;
+	static char *ret_firstname_c;
+	static char *ret_lastname_c;
 
-	while(sqlite3_step(stmt) == SQLITE_ROW) {
-		ret_username = sqlite3_column_text(stmt, 0);
-		ret_email = sqlite3_column_text(stmt, 1);
-		ret_password = sqlite3_column_text(stmt, 2);
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+	        ret_firstname = sqlite3_column_text(stmt, 0);
+		ret_lastname = sqlite3_column_text(stmt, 1);
 	}
 
-	ret_username_c = strdup((const char *)ret_username); 
-	ret_email_c  = strdup((const char *)ret_email); 
-	ret_password_c = strdup((const char *)ret_password); 
+	ret_firstname_c = strdup((const char *)ret_firstname); 
+	ret_lastname_c = strdup((const char *)ret_lastname); 
 
-	printf("%s \n", ret_username_c);
-	printf("%s \n", ret_email_c);
-	printf("%s \n", ret_password_c);
+	printf("%s \n", ret_firstname_c);
+	printf("%s \n", ret_lastname_c);
 
 	sqlite3_step(stmt);
 }

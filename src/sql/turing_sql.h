@@ -14,52 +14,54 @@
  *
  */
 
-int check_db_err(sqlite3 *db, const char *key); 
+#define CHECK_DB_MACRO_HAS_ROW 1
+#define CHECK_DB_MACRO_HAS_NO_ROW 0
+
+int check_db_err(sqlite3 *db, const char *dbN,const char *key); 
 
 #define BUF_SIZE 100 
 #define STRUCT_SIZE 100
 
 struct TABLE {
-	const char *tablename[STRUCT_SIZE]; 
+	char *tablename; 
 }; 
 
 /*
  * get_tb() retrieves sqlite3_column_text() string 
  */
-void *get_tb(int rc, sqlite3 *db, sqlite3_stmt *stmti, char *tb_c, const char *tb_t); 
+char *get_tb(sqlite3 *db, const char *dbN, const char *key,sqlite3_stmt *stmt); 
 
 struct COLUMN {
-	char *column_username;
-	char *column_email; 
-	char *column_password;
+	char *column_firstname;
+	char *column_lastname; 
 }; 
 
 /*
  * get_column() retrieves sqlite3_column_text() string
  */
-void *get_column(int rc, sqlite3 *db, sqlite3_stmt *stmt);
+void *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, char *table);
 
 #define USER_LEN 10
 #define EMAIL_LEN 30
 #define PASS_LEN 40
 
 struct DATA {
-	char username[USER_LEN]; 
-	char email[EMAIL_LEN];
-	char password[PASS_LEN]; 
+	char first_name[USER_LEN]; 
+	char last_name[PASS_LEN]; 
 };
 
 /*
  * INSERT into DB 
  */
-void insert_into(sqlite3 *db, sqlite3_stmt *stmt, struct TABLE *tb, struct COLUMN *clmn, struct DATA dt); 
+
+void insert_into(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, char *tablename); 
 
 /*
  * RETRIEVE FROM DB 
  *
  * ret() retrieves sqlite3_column_text() and sqlite3_column_int() for data retrieval from DB
  */
-void *ret(sqlite3 *db, sqlite3_stmt *stmt); 
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, char *tablename); 
 
 const char *set_key(const char *key);
 
