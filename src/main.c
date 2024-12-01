@@ -68,7 +68,10 @@ int main()
 	struct DATA dt;
 
 	sqlite3 *db; 
-	sqlite3_stmt *stmt; 
+	sqlite3_stmt *stmt1; 
+	sqlite3_stmt *stmt2;
+	sqlite3_stmt *stmt3;
+
 	const char *key;
 
 	int rc;
@@ -76,15 +79,29 @@ int main()
 	const char *tb_t; 
 
 	const char *db_key = "correctkey";
-	const char *dbN = "encrypted.db"; 	
+	const char *dbN = "enc.db"; 	
 
 	int check_db_sig = check_db_err(db, dbN, db_key);
 
-	char *table_name = get_tb(db, dbN, db_key, stmt);
+	sqlite3_open(dbN, &db);
 
-	get_column(db, dbN, db_key, stmt, table_name);
+	sqlite3_busy_timeout(db, 2500);
 
-	insert_into(db, dbN, db_key, stmt, table_name);
+	sqlite3_key(db, db_key, strlen(db_key));
 
-	ret(db, stmt, table_name);
+	const char *table = get_tb(db, dbN, db_key, stmt1); 
+
+	const unsigned char *web_col;
+	const unsigned char *user_col;
+	const unsigned char *pass_col;
+	
+	web_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 0);
+	user_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 1);
+	pass_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 2);
+
+	// insert_into(db, dbN, db_key, stmt1, table, web_col, user_col, pass_col);
+
+	ret(db, stmt1, table, web_col, user_col, pass_col); 	
 }
+
+	

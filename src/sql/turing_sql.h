@@ -1,6 +1,7 @@
 #ifndef SQL_H
 #define SQL_H
 #include "sqlite3.h"
+#include <pthread.h>
 
 /*
  * check_db_err() to verify PRAGMA key if valid or not 
@@ -22,46 +23,38 @@ int check_db_err(sqlite3 *db, const char *dbN,const char *key);
 #define BUF_SIZE 100 
 #define STRUCT_SIZE 100
 
-struct TABLE {
-	char *tablename; 
-}; 
-
 /*
  * get_tb() retrieves sqlite3_column_text() string 
  */
-char *get_tb(sqlite3 *db, const char *dbN, const char *key,sqlite3_stmt *stmt); 
-
-struct COLUMN {
-	char *column_firstname;
-	char *column_lastname; 
-}; 
+const char *get_tb(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt); 
 
 /*
  * get_column() retrieves sqlite3_column_text() string
  */
-void *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, char *table);
+const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt1, sqlite3_stmt *stmt2, sqlite3_stmt *stmt3, const char *table, int index);
 
-#define USER_LEN 10
-#define EMAIL_LEN 30
+#define WEB_LEN 100
+#define USER_LEN 30
 #define PASS_LEN 40
 
 struct DATA {
-	char first_name[USER_LEN]; 
-	char last_name[PASS_LEN]; 
+	char website[WEB_LEN]; 
+	char username[USER_LEN]; 
+	char pass[PASS_LEN]; 
 };
 
 /*
  * INSERT into DB 
  */
 
-void insert_into(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, char *tablename); 
+void *insert_into(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, const char *tablename, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol); 
 
 /*
  * RETRIEVE FROM DB 
  *
  * ret() retrieves sqlite3_column_text() and sqlite3_column_int() for data retrieval from DB
  */
-void *ret(sqlite3 *db, sqlite3_stmt *stmt, char *tablename); 
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol); 
 
 const char *set_key(const char *key);
 
