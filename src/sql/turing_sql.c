@@ -5,6 +5,10 @@
 #include <string.h>
 #include "/home/yel/openssl_aes_128_cbc/src/sql/turing_sql.h"
 
+/*
+ * The use of sqlite3_stmt *stmt should not be complicated and avoid multiple declarations of *stmt 
+ */
+ 
 int check_db_err(sqlite3 *db, const char *dbN,const char *key)
 {
         const char *command = "SELECT * FROM sqlite_master WHERE type = 'table';";
@@ -146,7 +150,7 @@ static char insert_err(sqlite3 *db)
         return insert_err_msg;
 
 }
-// NOT YET DONE 
+
 void *insert_into(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, const char *tablename, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol)
 {
 
@@ -221,14 +225,11 @@ static char ret_err(sqlite3 *db)
 	return ret_err_msg;
 }
 
-// NOT YET DONE 
 void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol)
 {
         int rc;
-        int rowN = 2; 
 
 	static char format_buf[BUF_SIZE];
-        static char r_format_buf[BUF_SIZE];
 
         const unsigned char *result_web; 
         const unsigned char *result_user; 
@@ -239,6 +240,14 @@ void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned cha
         rc = sqlite3_prepare_v2(db, format_buf, -1, &stmt, NULL);
 
         while(sqlite3_step(stmt) == SQLITE_ROW){
+                /* 
+                 * const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
+                 * iCol is the index of a result from sqlite3_prepare_v2
+                 * 
+                 * indexes normally starts at 0 as for first index of the result
+                 *
+                 * if iCol = 0 then it means iCol is looking for the first column of the result and so forth... 
+                 */
                         result_web = sqlite3_column_text(stmt, 0);
                         result_user = sqlite3_column_text(stmt, 1);
                         result_pass = sqlite3_column_text(stmt, 2);
