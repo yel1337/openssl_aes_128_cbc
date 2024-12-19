@@ -31,7 +31,7 @@ const char *get_tb(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *
 /*
  * get_column() retrieves sqlite3_column_text() string
  */
-const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt1, sqlite3_stmt *stmt2, sqlite3_stmt *stmt3, const char *table, int index);
+const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, const char *table, int index);
 
 #define WEB_LEN 100
 #define USER_LEN 30

@@ -3,4 +3,5 @@ gcc -o main /home/yel/openssl_aes_128_cbc/src/kms/kms.c /home/yel/openssl_aes_12
 ** SQLCIPHER COMPILE
 gcc main.c -o main -l /usr/local/include/sqlcipher -L /usr/local/lib/libsqlcipher.a -lsqlcipher
 
-gcc -o main main.c -I /usr/local/include/sqlcipher/ -L /usr/local/lib/libsqlcipher.a -lsqlcipher -lssl -lcrypto -l sqlite3
+/* Updated as of 12-19-2024 */
+gcc -o main main.c /home/yel/openssl_aes_128_cbc/src/sql/turing_sql.c -I /usr/local/include/sqlcipher/ -L /usr/local/lib/libsqlcipher.a -lsqlcipher -lcrypto -lsqlite3

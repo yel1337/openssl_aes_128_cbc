@@ -68,9 +68,7 @@ int main()
 	struct DATA dt;
 
 	sqlite3 *db; 
-	sqlite3_stmt *stmt1; 
-	sqlite3_stmt *stmt2;
-	sqlite3_stmt *stmt3;
+	sqlite3_stmt *stmt; 
 
 	const char *key;
 
@@ -89,19 +87,19 @@ int main()
 
 	sqlite3_key(db, db_key, strlen(db_key));
 
-	const char *table = get_tb(db, dbN, db_key, stmt1); 
+	const char *table = get_tb(db, dbN, db_key, stmt); 
 
 	const unsigned char *web_col;
 	const unsigned char *user_col;
 	const unsigned char *pass_col;
 	
-	web_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 0);
-	user_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 1);
-	pass_col = get_column(db, dbN, db_key, stmt1, stmt2, stmt3, table, 2);
+	web_col = get_column(db, dbN, db_key, stmt, table, 0);
+	user_col = get_column(db, dbN, db_key, stmt, table, 1);
+	pass_col = get_column(db, dbN, db_key, stmt, table, 2);
 
-	// insert_into(db, dbN, db_key, stmt1, table, web_col, user_col, pass_col);
+	// insert_into(db, dbN, db_key, stmt, table, web_col, user_col, pass_col);
 
-	ret(db, stmt1, table, web_col, user_col, pass_col); 	
+	ret(db, stmt, table, web_col, user_col, pass_col); 	
 }
 
 	

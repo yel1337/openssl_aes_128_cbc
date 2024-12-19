@@ -75,11 +75,11 @@ static char column_err(sqlite3 *db)
 }
 
 // MODIFY 
-const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt1, sqlite3_stmt *stmt2, sqlite3_stmt *stmt3, const char *table, int index) 
+const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *stmt, const char *table, int index) 
 {
-        const unsigned char *wCol;
-        const unsigned char *uCol;
-        const unsigned char *pCol;
+        const char *wCol;
+        const char *uCol;
+        const char *pCol;
         int rc;
 
         sqlite3_busy_timeout(db, 2500);
@@ -88,16 +88,16 @@ const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, s
         if(index == 0){
                 const char *column_buf_f ="SELECT name FROM pragma_table_info(?) WHERE cid = 0;";
 
-                rc = sqlite3_prepare_v2(db, column_buf_f, -1, &stmt1, NULL);
+                rc = sqlite3_prepare_v2(db, column_buf_f, -1, &stmt, NULL);
                 if(rc == SQLITE_OK) {
-                        sqlite3_bind_text(stmt1, 1, table, -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(stmt, 1, table, -1, SQLITE_TRANSIENT);
  
-                        while(sqlite3_step(stmt1) == SQLITE_ROW){
-                                wCol = sqlite3_column_text(stmt1, 0);
+                        while(sqlite3_step(stmt) == SQLITE_ROW){
+                                wCol = (const char *) sqlite3_column_text(stmt, 0);
 
                                 return wCol; 
                         }
-                        sqlite3_finalize(stmt1); 
+                        sqlite3_finalize(stmt); 
                 }
         }
         /*USERNAME*/
@@ -106,16 +106,16 @@ const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, s
 
                 sqlite3_busy_timeout(db, 2500);
 
-                rc = sqlite3_prepare_v2(db, column_buf_l, -1, &stmt2, NULL);
+                rc = sqlite3_prepare_v2(db, column_buf_l, -1, &stmt, NULL);
                 if(rc == SQLITE_OK) {
-                        sqlite3_bind_text(stmt2, 1, table, -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(stmt, 1, table, -1, SQLITE_TRANSIENT);
  
-                        while(sqlite3_step(stmt2) == SQLITE_ROW){
-                                uCol = sqlite3_column_text(stmt2, 0);
+                        while(sqlite3_step(stmt) == SQLITE_ROW){
+                                uCol = (const char *) sqlite3_column_text(stmt, 0);
 
                                 return uCol; 
                         }
-                        sqlite3_finalize(stmt2);
+                        sqlite3_finalize(stmt);
                 }
         } 
         /*PASSWORD*/
@@ -124,16 +124,16 @@ const unsigned char *get_column(sqlite3 *db, const char *dbN, const char *key, s
 
                 sqlite3_busy_timeout(db, 2500);
 
-                rc = sqlite3_prepare_v2(db, column_buf_l, -1, &stmt2, NULL);
+                rc = sqlite3_prepare_v2(db, column_buf_l, -1, &stmt, NULL);
                 if(rc == SQLITE_OK) {
-                        sqlite3_bind_text(stmt2, 1, table, -1, SQLITE_TRANSIENT);
+                        sqlite3_bind_text(stmt, 1, table, -1, SQLITE_TRANSIENT);
  
-                        while(sqlite3_step(stmt2) == SQLITE_ROW){
-                                pCol = sqlite3_column_text(stmt2, 0);
+                        while(sqlite3_step(stmt) == SQLITE_ROW){
+                                pCol = (const char *) sqlite3_column_text(stmt, 0);
 
                                 return pCol; 
                         }
-                        sqlite3_finalize(stmt2);
+                        sqlite3_finalize(stmt);
                 }
         } 
         sqlite3_close(db);
@@ -222,55 +222,40 @@ static char ret_err(sqlite3 *db)
 }
 
 // NOT YET DONE 
-void *ret(sqlite3 *db, sqlite3_stmt *stmt1, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol)
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol)
 {
         int rc;
-        int row_index; 
-        int rowN; 
+        int rowN = 2; 
 
 	static char format_buf[BUF_SIZE];
         static char r_format_buf[BUF_SIZE];
 
-        const unsigned char *rs_w; 
+        const unsigned char *result_web; 
+        const unsigned char *result_user; 
+        const unsigned char *result_pass; 
 
-        // Row Count
-        sprintf(r_format_buf, "SELECT COUNT(%s) FROM %s", wCol, table);
+        sprintf(format_buf, "SELECT * FROM %s LIMIT 1;", table); /* Query for first row of results */
 
-        rc = sqlite3_prepare_v2(db, r_format_buf, -1, &stmt1, NULL); 
+        rc = sqlite3_prepare_v2(db, format_buf, -1, &stmt, NULL);
 
-        while(sqlite3_step(stmt1) == SQLITE_ROW){
-                 rowN = sqlite3_column_int(stmt1, 0);
+        while(sqlite3_step(stmt) == SQLITE_ROW){
+                        result_web = sqlite3_column_text(stmt, 0);
+                        result_user = sqlite3_column_text(stmt, 1);
+                        result_pass = sqlite3_column_text(stmt, 2);
+                                
+                        printf("%s ", result_web);
+                        printf("%s ", result_user);
+                        printf("%s\n", result_pass);
         }
-        sqlite3_finalize(stmt1);
 
-        printf("rowN stmt 1 = %d\n", rowN);  
+        sqlite3_finalize(stmt);
 
-        sqlite3_stmt *stmt2;
-        for(row_index = 0; row_index <= rowN; row_index++){
-                sprintf(format_buf, "SELECT * FROM %s LIMIT 1 OFFSET %d;", table, row_index);
-                const unsigned char *rowArr[rowN];
-
-                rc = sqlite3_prepare_v2(db, format_buf, -1, &stmt2, NULL);
-                if(rc == SQLITE_OK){
-                        while(sqlite3_step(stmt2) == SQLITE_ROW){
-                                rs_w = sqlite3_column_text(stmt2, 1);
-                                printf("stmt 2 = %s\n", rs_w);
-
-                                for(int i = 0; i < rowN; i++){
-                                        printf("%s rs_w\n", rs_w);
-
-                                        rowArr[rowN] = rs_w;
-
-                                        printf("rowArr = %s\n", rowArr[1]);
-                                }
-                        }
-                }
-	        else if(rc != SQLITE_OK) {
-		        ret_err(db);
+        if(rc != SQLITE_OK) {
+		ret_err(db);
 		
-		        sqlite3_close(db);
-	        }        
-        }
+		sqlite3_close(db);
+	}
+        
         sqlite3_close(db);
 }
 
