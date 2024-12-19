@@ -54,7 +54,14 @@ void *insert_into(sqlite3 *db, const char *dbN, const char *key, sqlite3_stmt *s
  *
  * ret() retrieves sqlite3_column_text() and sqlite3_column_int() for data retrieval from DB
  */
-void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol); 
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol, int num_of_rows); 
+
+/* 
+ * Count number of rows function 
+ * 
+ * Can be use to count column's rows   
+ */
+int count_rows(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *column);
 
 const char *set_key(const char *key);
 

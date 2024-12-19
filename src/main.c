@@ -97,9 +97,9 @@ int main()
 	user_col = get_column(db, dbN, db_key, stmt, table, 1);
 	pass_col = get_column(db, dbN, db_key, stmt, table, 2);
 
-	// insert_into(db, dbN, db_key, stmt, table, web_col, user_col, pass_col);
+	int rows_N = count_rows(db, stmt, table, web_col);
 
-	ret(db, stmt, table, web_col, user_col, pass_col); 	
+	ret(db, stmt, table, web_col, user_col, pass_col, rows_N); 	
 }
 
 	

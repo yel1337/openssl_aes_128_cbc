@@ -225,21 +225,22 @@ static char ret_err(sqlite3 *db)
 	return ret_err_msg;
 }
 
-void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol)
+void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *wCol, const unsigned char *uCol, const unsigned char *pCol, int num_of_rows)
 {
         int rc;
 
-	static char format_buf[BUF_SIZE];
+	static char first_index_buf[BUF_SIZE];
 
-        const unsigned char *result_web; 
-        const unsigned char *result_user; 
-        const unsigned char *result_pass; 
+        static const unsigned char *result_web; 
+        static const unsigned char *result_user; 
+        static const unsigned char *result_pass; 
 
-        sprintf(format_buf, "SELECT * FROM %s LIMIT 1;", table); /* Query for first row of results */
+        sprintf(first_index_buf, "SELECT * FROM %s LIMIT 1;", table); /* Query for first row of results */
 
-        rc = sqlite3_prepare_v2(db, format_buf, -1, &stmt, NULL);
+        rc = sqlite3_prepare_v2(db, first_index_buf, -1, &stmt, NULL);
 
         while(sqlite3_step(stmt) == SQLITE_ROW){
+
                 /* 
                  * const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
                  * iCol is the index of a result from sqlite3_prepare_v2
@@ -259,6 +260,30 @@ void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned cha
 
         sqlite3_finalize(stmt);
 
+        static char following_indexes_buf[1000];
+
+        static const unsigned char *wColN;        
+        static const unsigned char *uColN;        
+        static const unsigned char *pColN;        
+
+        for(int x = 1; x <= num_of_rows; x++){
+                sprintf(following_indexes_buf, "SELECT %s, %s, %s FROM %s LIMIT 1 OFFSET %d;", wCol, uCol, pCol, table, x); /* Following results queries */
+
+                sqlite3_prepare_v2(db, following_indexes_buf, -1, &stmt, NULL);
+
+                while(sqlite3_step(stmt) == SQLITE_ROW) {
+                        wColN = sqlite3_column_text(stmt, 0);
+                        uColN = sqlite3_column_text(stmt, 1);
+                        pColN = sqlite3_column_text(stmt, 2);
+
+                        printf("%s ", wColN);
+                        printf("%s ", uColN);
+                        printf("%s\n", pColN);
+                }
+
+                sqlite3_finalize(stmt);
+        }
+
         if(rc != SQLITE_OK) {
 		ret_err(db);
 		
@@ -273,6 +298,26 @@ const char *set_key(const char *key)
 	key = "correctkey";
 
 	return key; 
+}
+
+int count_rows(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned char *column)
+{
+        static char count_row_buf[1000];
+        static int row_count_result;
+
+        sprintf(count_row_buf, "SELECT COUNT(%s) FROM %s;", column, table);
+
+        sqlite3_prepare_v2(db, count_row_buf, -1, &stmt, NULL);
+
+        while(sqlite3_step(stmt) == SQLITE_ROW) {
+                row_count_result = sqlite3_column_int(stmt, 0);
+
+                return row_count_result;
+        }
+
+        sqlite3_finalize(stmt);
+
+        sqlite3_close(db);
 }
 
 void close_db(sqlite3 *db)
