@@ -271,6 +271,7 @@ void *ret(sqlite3 *db, sqlite3_stmt *stmt, const char *table, const unsigned cha
 
                 sqlite3_prepare_v2(db, following_indexes_buf, -1, &stmt, NULL);
 
+                // 2025 
                 while(sqlite3_step(stmt) == SQLITE_ROW) {
                         wColN = sqlite3_column_text(stmt, 0);
                         uColN = sqlite3_column_text(stmt, 1);

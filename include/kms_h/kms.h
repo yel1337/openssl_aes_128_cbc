@@ -8,7 +8,7 @@
 
 void *key_gen(); 
 unsigned char *key_to_sha256();
-void do_salt_gen(unsigned char *env_val, unsigned char *salt_bytes);
+unsigned char *do_salt_gen();
 void key_write(char *kdf);
 
 #endif 
