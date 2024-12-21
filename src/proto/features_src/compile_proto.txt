@@ -1,0 +1,2 @@
+gcc -DSQLITE_HAS_CODEC=1 -DSQLITE_TEMP_STORE=2     -o ret_main retrieve_main.c     /home/yel/openssl_aes_128_cbc/src/proto/features_src/retrieve_proto.c     /home/yel/openssl_aes_128_cbc/src/proto/features_src/kdf_proto_src.c     -I /usr/local/include/sqlcipher     /usr/local/lib/libsqlcipher.a -lcrypto -lm
+
