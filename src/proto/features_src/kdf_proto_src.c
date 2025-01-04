@@ -60,11 +60,10 @@ void set_db_key(sqlite3 *db, sqlite3_stmt *stmt, char *generated_key)
         printf("sqlite3_open: OK\n");
     }
 
-    // 2025
     /* ATTACH DB*/
-    char *attach_key_buf = malloc(sizeof(char *) * 1000); 
+    char *attach_key_buf = malloc(1000 * sizeof(char)); 
 
-    sprintf(attach_key_buf, "ATTACH DATABASE '/home/yel/openssl_aes_128_cbc/src/proto/features_src/cred_db' AS cred_enc KEY '%s';", generated_key);
+    sprintf(attach_key_buf, "ATTACH DATABASE '/home/yel/openssl_aes_128_cbc/src/proto/features_src/cred_enc' AS cred_enc KEY '%s';", generated_key);
 
     int attach_prep = sqlite3_prepare_v2(db, attach_key_buf, -1, &stmt, NULL);
 
@@ -83,6 +82,8 @@ void set_db_key(sqlite3 *db, sqlite3_stmt *stmt, char *generated_key)
     sql_exec = sqlite3_exec(db, export_sql, 0, 0, &err_msg);
     if(sql_exec != SQLITE_OK) {
         printf("EXPORT DB: %s\n", sqlite3_errmsg(db));
+    } else if(sql_exec == SQLITE_OK) {
+        printf("EXPORT DB: ok\n");
     }
 
     // Detach the plaintext database

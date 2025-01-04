@@ -6,11 +6,9 @@ void open_db(const char *db_file, sqlite3 **db)
 {
     int sql_open = sqlite3_open(db_file, db);
 
-    if(sql_open == 0){
-        
+    if(sql_open == 0){      
         printf("sqlite3_open: OK\n");
-    } else if(sql_open == 1) {
-        
+    } else if(sql_open == 1) {   
         printf("sqlite3_open: ERROR\n");
     }
 }

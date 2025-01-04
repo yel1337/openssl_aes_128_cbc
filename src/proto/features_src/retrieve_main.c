@@ -9,7 +9,7 @@ int main()
     sqlite3 *db;
     sqlite3_stmt *stmt;
 
-    ret_cred();
+    // ret_cred();
 
     unsigned char *salt = salt_gen();
 
